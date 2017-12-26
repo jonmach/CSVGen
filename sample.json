@@ -1,0 +1,86 @@
+{
+  "name" : "SampleTable",
+  "columns": [
+    {
+      "name": "ID",
+      "incremental": "1",
+      "description" : "Unique Key - start at 100",
+      "type": "0",
+      "minimum": "100",
+      "format": "0000d"
+    },
+    {
+      "name" : "random-name-text",
+      "description" : "Random Characters",
+      "type": "2",
+      "format" : "s"
+    },
+    {
+      "name" : "sex",
+      "description" : "Gender",
+      "type": "2",
+      "choice" : [ "M", "F"],
+      "format" : "s"
+    },
+    {
+      "name" : "department",
+      "description" : "Department number",
+      "type": "0",
+      "choice" : [ 101, 102, 201, 202, 203, 301, 302, 401, 402],
+      "format" : "d"
+    },
+    {
+      "name": "height",
+      "description" : "Person's height",
+      "type": "1",
+      "minimum": "1.65",
+      "maximum": "1.85",
+      "NULLS" : "0",
+      "format": "000.2f"
+    },
+    {
+      "name": "phone",
+      "description" : "A character field containing a random phone number ",
+      "type": "2",
+      "regex": "0[1-9]{2,4}-[1-9]\\d{7}",
+      "length": "10",
+      "NULLS" : "1",
+      "format": "s"
+    },
+    {
+      "name": "UK-Postcode",
+      "description" : "Random post code",
+      "type": "2",
+      "regex": "[A-Z]{2,3}\\d{1,2} \\d{1,2}[A-Z]{2}",
+      "length": "10",
+      "NULLS" : "0",
+      "format": "s"
+    },
+    {
+      "name": "last-login",
+      "description" : "Arbitrary Time",
+      "type": "4",
+      "minimum": "20170101080000",
+      "maximum": "20170101175959",
+      "NULLS" : "0",
+      "format": "%d/%m/%Y %H:%M:%S"
+    },
+    {
+      "name": "DOB",
+      "description" : "Date of Birth",
+      "type": "3",
+      "minimum" : "19700101",
+      "maximum" : "19851231",
+      "NULLS" : "0",
+      "format": "%d/%m/%Y"
+    },
+    {
+      "name": "StartDate",
+      "description" : "One of three dates, they could have joined the company",
+      "type": "3",
+      "choice" : ["20170103", "20170401", "20170701"],
+      "NULLS" : "0",
+      "format": "%d-%m-%Y"
+    }
+  ]
+}
