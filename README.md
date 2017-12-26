@@ -42,7 +42,7 @@ Usage:
 ```
 from CSVGen import CSVGen
 
-CSVG = CSVGen(iFile=<schema file>, oFile=>CSV File>, numRows=<num>, verbose=True)
+CSVG = CSVGen(iFile=<schema file>, oFile=<CSV File>, numRows=<num>, verbose=<True|False>)
 ```
 
 The generated file contains a header row column names. Subsequent rows contain the generated data.
