@@ -23,6 +23,27 @@
       "format" : "s"
     },
     {
+      "name" : "sexRatio",
+      "description" : "Ratio of Males to Females",
+      "type": "2",
+      "ratio" : [ ["Male", "Female"], [1, 7] ],
+      "format" : "s"
+    },
+    {
+      "name" : "IntegerRatio",
+      "description" : "Ratio of Colours - assuming integer values for RGB",
+      "type": "0",
+      "ratio" : [ [1, 2, 3], [1, 5, 10] ],
+      "format" : "d"
+    },
+    {
+      "name" : "DateRatio",
+      "description" : "Ratio of Start Dates",
+      "type": "3",
+      "ratio" : [ ["20160101", "20170101", "20180101"], [1, 2, 3] ],
+      "format" : "%d/%m/%Y"
+    },
+    {
       "name" : "department",
       "description" : "Department number",
       "type": "0",

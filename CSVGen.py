@@ -2,6 +2,7 @@
 Class that can generate random dummy data (CSV format) for general data tests.
 
 Author: Jon Machtynger
+Copyright 2017
 Date: 21 December 2017
 
 See README.md for description of usage
@@ -9,6 +10,7 @@ See README.md for description of usage
 
 import json
 import string
+import numpy
 import random
 import datetime
 import time
@@ -152,6 +154,25 @@ class CSVGen:
 		colNULLS = column.get('NULLS')	# Allow NULL (i.e. empty) data tp be generated
 		colIncremental = column.get('incremental')	# Use this as an incremental (e.g. unique key) column
 		colChoice = column.get('choice')	# Provide a choice of values
+		colRatio = column.get('ratio')		# Provide a ratio'd choice of values
+		colDistribution = column.get('distribution') # Provide predefined data skew
+
+		if (colDistribution and (colDistribution != "normal" and colDistribution != "uniform")):
+			log.error("Error: Column '%s': Distribution type must be either 'normal' or 'uniform'" % (colName))
+			return None
+
+		if (colChoice and colRatio):
+			log.error("Error: You can only specify one of ratio or choice, not both")
+			return None
+
+		if (colRatio):
+			if (len(colRatio) < 2):
+				log.error("Error: You must have a 2 part ratio [ [choices], [ratios] ]")
+				return None
+
+		if (colIncremental == "1" and colType != "0"):
+			log.error("Error: Column '%s': Only Integer columns can be defined as incremental" % (colName))
+			return None
 
 		if colType in "01":		# numeric
 
@@ -178,15 +199,11 @@ class CSVGen:
 					if (int(colMin) + int(self.numRows)) > int(colMax):
 						log.error("Error: Column '%s': Incremental row would exceed Maximum value of '%s' for %s rows" % (colName, colMax, self.numRows))
 						return None
-					if (colChoice):
+					if (colChoice or colRatio):
 						log.error("Error: Column '%s': You cannot specify a choice of values in an incremental row " % (colName))
 						return None
 
 			if (colType == "1"): # Float/Decimal
-				if (colIncremental == "1"):
-					log.error("Error: Column '%s': Only Integer columns can be defined as incremental" % (colName))
-					return None
-
 				if (not colMin):
 					colMin = self.minFloat
 				if (not colMax):
@@ -219,15 +236,7 @@ class CSVGen:
 				log.warning("Warning: Column '%s': Maximum specified of %s, but no minimum" % (colName, colMax))
 				log.warning('  --> Assigning a minimum value of %s' % column['minimum'])
 
-		if (colType == "2"):
-			if (colIncremental == "1"):
-				log.error("Error: Column '%s': Only Integer columns can be defined as incremental" % (colName))
-				return None
-
 		if colType in "34":					# Date or DateTime
-			if (colIncremental == "1"):
-				log.error("Error: Column '%s': Only Integer columns can be defined as incremental" % (colName))
-				return None
 
 			if colType == "3":
 				if (not colMin):
@@ -317,11 +326,16 @@ class CSVGen:
 			return data
 
 	def RandomNull(self, val):
-		isNull = random.randint(0, self.nullOdds)
+		isNull = numpy.randint(0, self.nullOdds)
 		if (isNull == int(self.nullOdds / 2)):
 			return ""
 		else:
 			return val
+
+	def ratio_pick(self, choices, ratios):
+		probs = [ratios[i] / sum(ratios) for i in range(len(ratios))]
+		choice = numpy.random.choice(choices, size=1, p=probs)
+		return choice
 
 	'''
 	Generate random data for a column
@@ -335,10 +349,12 @@ class CSVGen:
 		colFormat = column.get('format')
 		colIncremental = column.get('incremental')
 		colChoice = column.get('choice')
+		colRatio = column.get('ratio')
 		colRegex = column.get('regex')
+		colDistribution = column.get('distribution')
 
 		# With a choice of values, no need for min/max
-		if (colChoice):
+		if (colChoice or colRatio):
 			colMin="0"
 			colMax="0"
 
@@ -362,9 +378,18 @@ class CSVGen:
 					colMin = self.minInt
 				if not colMax:
 					colMax = self.maxInt
-				coreVal = random.randint(int(colMin), int(colMax))
+
+				coreVal = int(numpy.random.uniform(int(colMin), int(colMax), 1))
+
+				if (colDistribution):
+					if (colDistribution == "normal"):
+						coreVal = int(numpy.random.standard_normal(1) * int(colMax)) + int(colMin)
+					# No need to test for Uniform.  Could add additional distributions in here though
+
 				if (colChoice):
 					coreVal = random.choice(colChoice)
+				elif (colRatio):
+					coreVal = self.ratio_pick(colRatio[0], colRatio[1])[0]
 				else:
 					if isNullable:
 						coreVal = self.RandomNull(coreVal)
@@ -376,10 +401,17 @@ class CSVGen:
 				colMax = self.maxFloat
 
 			coreVal = random.uniform(float(colMin), float(colMax))
+			if (colDistribution):
+				if (colDistribution == "normal"):
+					coreVal = (numpy.random.standard_normal(1) * float(colMax)) + float(colMin)
+					# No need to test for Uniform.  Could add additional distributions in here though
+
 			if (not colFormat):
 				colFormat = self.defaultFloatOPFormat
 			if (colChoice):
 				coreVal = random.choice(colChoice)
+			elif (colRatio):
+				coreVal = self.ratio_pick(colRatio[0], colRatio[1])[0]
 			else:
 				if isNullable:
 					coreVal = self.RandomNull(coreVal)
@@ -394,9 +426,10 @@ class CSVGen:
 				coreVal = rstr.xeger(colRegex)
 			else:
 				coreVal = rstr.xeger('[A-Z][A-Za-z     0-9]{1,%s}' % colLen)
-				# coreVal = ''.join(random.choice(string.ascii_lowercase + "             " + string.ascii_uppercase + string.digits) for _ in range(colLen))
 			if (colChoice):
 				coreVal = random.choice(colChoice)
+			elif (colRatio):
+				coreVal = self.ratio_pick(colRatio[0], colRatio[1])[0]
 			else:
 				if isNullable:
 					coreVal = self.RandomNull(coreVal)
@@ -408,6 +441,9 @@ class CSVGen:
 			if (colChoice):
 				choice = time.mktime(time.strptime('%s' % (random.choice(colChoice)), '%Y%m%d'))
 				coreVal = time.strftime(colFormat, time.localtime(choice))
+			elif (colRatio):
+				choice = time.mktime(time.strptime('%s' % (self.ratio_pick(colRatio[0], colRatio[1])[0]), '%Y%m%d'))
+				coreVal = time.strftime(colFormat, time.localtime(choice))
 			else:
 				if not colMin:
 					colMin = self.minDate
@@ -417,8 +453,14 @@ class CSVGen:
 				d1 = time.mktime(time.strptime('%s' % (colMin), '%Y%m%d'))
 				d2 = time.mktime(time.strptime('%s' % (colMax), '%Y%m%d'))
 
+				randomVal = random.uniform(0, 1)
+				if (colDistribution):
+					if (colDistribution == "normal"):
+						randomVal = (numpy.random.standard_normal(1))
+					# No need to test for Uniform.  Could add additional distributions in here though
+
 				# Take the default output date format from constants at beginning of File
-				coreVal = time.strftime(colFormat, time.localtime(d1 + random.random() * (d2 - d1)))
+				coreVal = time.strftime(colFormat, time.localtime(d1 + randomVal * (d2 - d1)))
 
 				if isNullable:
 					coreVal = self.RandomNull(coreVal)
@@ -432,6 +474,9 @@ class CSVGen:
 			if (colChoice):
 				choice = time.mktime(time.strptime('%s' % (random.choice(colChoice)), '%Y%m%d%H%M%S'))
 				coreVal = time.strftime(colFormat, time.localtime(choice))
+			elif (colRatio):
+				choice = time.mktime(time.strptime('%s' % (self.ratio_pick(colRatio[0], colRatio[1])[0]), '%Y%m%d%H%M%S'))
+				coreVal = time.strftime(colFormat, time.localtime(choice))
 			else:
 				if not colMin:
 					colMin = self.minDateTime
@@ -441,8 +486,14 @@ class CSVGen:
 				d1 = time.mktime(time.strptime('%s' % (colMin), '%Y%m%d%H%M%S'))
 				d2 = time.mktime(time.strptime('%s' % (colMax), '%Y%m%d%H%M%S'))
 
+				randomVal = random.uniform(0, 1)
+				if (colDistribution):
+					if (colDistribution == "normal"):
+						randomVal = (numpy.random.standard_normal(1))
+					# No need to test for Uniform.  Could add additional distributions in here though
+
 				# Take the default output date format from constants at beginning of File
-				coreVal = time.strftime(colFormat, time.localtime(d1 + random.random() * (d2 - d1)))
+				coreVal = time.strftime(colFormat, time.localtime(d1 + randomVal * (d2 - d1)))
 
 				if isNullable:
 					coreVal = self.RandomNull(coreVal)
@@ -456,5 +507,6 @@ class CSVGen:
 			return "{:{fmt}}".format(coreVal, fmt=colFormat)
 
 
-#G = GenerateData(iFile="sample.json", oFile="opfile.csv", numRows=20, verbose=True)
+# G = CSVGen(iFile="sample.json", oFile="opfile.csv", numRows=50, verbose=True)
+G = CSVGen(iFile="distribution.json", oFile="opfile.csv", numRows=50, verbose=True)
 
