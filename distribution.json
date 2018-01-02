@@ -1,0 +1,49 @@
+{
+  "name" : "SampleDistributionTable",
+  "columns": [
+    {
+      "name": "ID",
+      "incremental": "1",
+      "description" : "Unique Key - start at 1",
+      "type": "0",
+      "minimum": "1",
+      "format": "0000d"
+    },
+    {
+      "name" : "uniform-int",
+      "description" : "Random integers between 1 and 1000",
+      "type": "0",
+      "minimum": "1",
+      "maximum" : "1000",
+      "distribution" : "uniform",
+      "format" : "000d"
+    },
+    {
+      "name" : "uniform-float",
+      "description" : "Random floats between 1 and 1000",
+      "type": "1",
+      "minimum": "1",
+      "maximum" : "1000",
+      "distribution" : "uniform",
+      "format" : "000.2f"
+    },
+    {
+      "name" : "normal-int",
+      "description" : "Normally distributed integers between 1 and 1000",
+      "type": "0",
+      "minimum": "1",
+      "maximum" : "1000",
+      "distribution" : "normal",
+      "format" : "000d"
+    },
+    {
+      "name" : "normal-float",
+      "description" : "Normally distributed floats between 1 and 1000",
+      "type": "0",
+      "minimum": "1",
+      "maximum" : "1000",
+      "distribution" : "normal",
+      "format" : "000.2f"
+    }
+  ]
+}
