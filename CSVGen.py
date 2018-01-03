@@ -167,8 +167,12 @@ class CSVGen:
 
 		if (colRatio):
 			if (len(colRatio) < 2):
-				log.error("Error: You must have a 2 part ratio [ [choices], [ratios] ]")
+				log.error("Error: Column '%s': You must have a 2 part ratio [ [choices], [ratios] ]" % (colName))
 				return None
+			if (len(colRatio[0]) != len(colRatio[1])):
+				log.error("Error: Column '%s': Your ratio choices do not match your ratios" % (colName))
+				return None
+
 
 		if (colIncremental == "1" and colType != "0"):
 			log.error("Error: Column '%s': Only Integer columns can be defined as incremental" % (colName))
@@ -326,7 +330,7 @@ class CSVGen:
 			return data
 
 	def RandomNull(self, val):
-		isNull = numpy.randint(0, self.nullOdds)
+		isNull = numpy.random.randint(0, self.nullOdds)
 		if (isNull == int(self.nullOdds / 2)):
 			return ""
 		else:
@@ -507,6 +511,9 @@ class CSVGen:
 			return "{:{fmt}}".format(coreVal, fmt=colFormat)
 
 
-# G = CSVGen(iFile="sample.json", oFile="opfile.csv", numRows=50, verbose=True)
-G = CSVGen(iFile="distribution.json", oFile="opfile.csv", numRows=50, verbose=True)
+# Uncomment this to create a sample file containing multiple field types
+G = CSVGen(iFile="sample.json", oFile="opfile.csv", numRows=50, verbose=True)
+
+# Uncomment this to create a sample file containing distribution skew field types
+#G = CSVGen(iFile="distribution.json", oFile="opfile.csv", numRows=50, verbose=True)
 
