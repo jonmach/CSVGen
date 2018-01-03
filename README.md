@@ -34,7 +34,7 @@ Available Attributes include
 	- ["20031231", "19700101"] for Date, or ["20031231120000", "19700101133000"] for DateTime
 - **ratio** : Provide an array of values follwed by an associated ratio. Choices must match data type
 	- [["M", "F"], [1, 3]] - for every "M", there will be roughly 3 "F" (i.e prob of .25/.75)
-- **distribution** : For non choice/ration/string types.
+- **distribution** : For non choice/ratio/string types.
 	- "uniform" - random values are uniformly generated
 	- "normal" - mean = 0, stddev = 1
 - **regex** : Can be used with String fields

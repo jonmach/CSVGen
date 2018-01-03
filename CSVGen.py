@@ -330,8 +330,9 @@ class CSVGen:
 			return data
 
 	def RandomNull(self, val):
-		isNull = numpy.random.randint(0, self.nullOdds)
-		if (isNull == int(self.nullOdds / 2)):
+		odds = 1.0 / self.nullOdds  # The higher the odds, the lower the chance
+		isNull = numpy.random.random()
+		if (isNull < odds):
 			return ""
 		else:
 			return val
